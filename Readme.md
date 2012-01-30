@@ -27,7 +27,7 @@ I know it seems like [NIH](http://en.wikipedia.org/wiki/Not_invented_here) syndr
 
 ## Instructions ##
 
-There are some instructions at [doc/instructions.md](https://github.com/jjeffery/C2/doc/instructions.md).
+There are some instructions at [doc/instructions.md](https://github.com/jjeffery/C2/blob/master/doc/instructions.md).
 
 
 ## About the Castle Project ##
