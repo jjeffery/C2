@@ -23,7 +23,7 @@ This facility has dependencies on the following assemblies:
 
 I wrote this facility because I needed to upgrade to the latest version of Castle.Windsor to satisfy other dependencies in a project I was working on. This then turned into an attempt to upgrade to the latest version of Castle.Services.Transactions. This assembly has undergone significant revision between 2.5 and 3.0, and the 3.0 version is compiled against version 2.5 of Castle.Core and Castle.Windsor. It all got a bit too hard for me, especially since none of the other code I was using made any use of Castle transactions.
 
-I know it smacks of [NIH](http://en.wikipedia.org/wiki/Not_invented_here) syndrome, but I decided to write my own. At least it helped me to better understand how to write a castle windsor facility. I have made use of code from the official repository, as well as some good ideas from Henrik Feldt's [Castle.Facilities.NHibernate](https://github.com/haf/Castle.Facilities.NHibernate) facility. Thanks to Henrik and the other Castle project contributors.
+I know it seems like [NIH](http://en.wikipedia.org/wiki/Not_invented_here) syndrome, but I decided to write my own. At least it helped me to better understand how to write a castle windsor facility. I have made use of code from the official repository, as well as some good ideas from Henrik Feldt's [Castle.Facilities.NHibernate](https://github.com/haf/Castle.Facilities.NHibernate) facility. Thanks to Henrik and the other Castle project contributors.
 
 
 ## About the Castle Project ##
