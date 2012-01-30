@@ -4,7 +4,7 @@ This repository contains the project `C2.Facilities.NH`, which is a simple castl
 
 Note that there is already a facility in the [Castle repository](http://github.com/castleproject) for NHibernate integration, and it is officially supported, so check out that facility to see if it suits your needs better.
 
-The official NHibernate integration facility has dependencies on the following assemblies:
+The official NHibernate integration facility version 2.0 RC has dependencies on the following assemblies:
 
 * Castle.Core 2.5.1.0
 * Castle.Services.Transactions 2.5.0.0
