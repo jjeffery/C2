@@ -25,6 +25,10 @@ I wrote this facility because I needed to upgrade to the latest version of Castl
 
 I know it seems like [NIH](http://en.wikipedia.org/wiki/Not_invented_here) syndrome, but I decided to write my own. At least it helped me to better understand how to write a castle windsor facility. I have made use of code from the official repository, as well as some good ideas from Henrik Feldt's [Castle.Facilities.NHibernate](https://github.com/haf/Castle.Facilities.NHibernate) facility. Thanks to Henrik and the other Castle project contributors.
 
+## Instructions ##
+
+There are some instructions at [doc/instructions.md](https://github.com/jjeffery/C2/doc/instructions.md).
+
 
 ## About the Castle Project ##
 
