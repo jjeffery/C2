@@ -118,7 +118,7 @@
 				<import namespace="System.Reflection"/>
 			</imports>
 			<attributes>
-				<attribute type="AssemblyVersionAttribute" value="${full.product.version}"/>
+				<attribute type="AssemblyVersionAttribute" value="${numeric.product.version}"/>
 				<attribute type="AssemblyConfigurationAttribute" value="${config}"/>
 				<attribute type="AssemblyCompanyAttribute" value="Software Projects Pty Ltd"/>
 				<attribute type="AssemblyProductAttribute" value="C2: Castle Project Contributions"/>
@@ -191,6 +191,15 @@
 		<xmlpoke file="${output.dir}/C2.Facilities.NH/C2.Facilities.NH.nuspec"
 						 xpath="//copyright"
 						 value="Copyright (c) 2004-${build.year}"/>
+	</target>
+
+	<target name="version.file" depends="update.nuspec">
+		<echo file="${output.dir}/C2.Facilities.NH/version.txt">Version information:
+			Version:	${numeric.product.version}
+			Commit: ${vcs.revision}
+			Branch:	${vcs.branch}
+			Built:	${build.timestamp}
+		</echo>
 	</target>
 
 	<target name="nuget" depends="update.nuspec">
