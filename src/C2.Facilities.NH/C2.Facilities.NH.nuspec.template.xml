@@ -1,0 +1,18 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>C2.Facilities.NH</id>
+    <version>(version is xml-poked here by nant script)</version>
+    <authors>John Jeffery</authors>
+    <description>Simple NHibernate integration facility for Castle</description>
+    <licenseUrl>http://www.apache.org/licenses/LICENSE-2.0.html</licenseUrl>
+    <projectUrl>https://github.com/jjeffery/C2/</projectUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <copyright>(copyright is xml-poked here by nant script)</copyright>
+    <dependencies>
+      <dependency id="Castle.Core" version="3.0.0" />
+      <dependency id="Castle.Windsor" version="3.0.0" />
+      <dependency id="NHibernate" version="3.2.0" />
+    </dependencies>
+  </metadata>
+</package>

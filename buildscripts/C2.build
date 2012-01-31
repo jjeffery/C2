@@ -56,6 +56,9 @@
 	
 	<!-- directory for code signing tool -->
 	<property name="signtool.bin.dir" value="${tools.dir}/signtool" overwrite="false"/>
+	
+	<!-- directory for nuget tool -->
+	<property name="nuget.dir" value="${tools.dir}/nuget" overwrite="false"/>
 
 
 	<!-- directories and files in this source repository 
@@ -140,7 +143,9 @@
 			<arg value="${cert.subject.name}"/>
 			<arg value="/t"/>
 			<arg value="${timestamp.service.url}"/>
-			<arg file="${src.dir}/C2.Facilities.NH/bin/${config}/C2.Facilities.NH.dll"/>
+			
+			<!-- code-sign the assembly that is going to be tested -->
+			<arg file="${src.dir}/C2.Facilities.NH.Tests/bin/${config}/C2.Facilities.NH.dll"/>
 		</exec>
 	</target>
 
@@ -159,19 +164,51 @@
 		</nunit2>
 	</target>
 
-	<target name="nuget" depends="unittest">
-		<!--
-		<nant>
-			<buildfiles>
-				<include name="${src.dir}/Build/ClickOnce/ClickOnce.build"/>
-				<include name="${src.dir}/Build/Setup/setup.build"/>
-				<include name="${src.dir}/Build/Installer/installer.build"/>
-			</buildfiles>
-			<properties>
-				<property name="config" value="${config}"/>
-			</properties>
-		</nant>
-		-->
+	<target name="copy.files" depends="unittest">
+		<mkdir dir="${output.dir}"/>
+		<delete>
+			<fileset>
+				<include name="${output.dir}/**"/>
+			</fileset>
+		</delete>
+		<mkdir dir="${output.dir}/C2.Facilities.NH"/>
+		<mkdir dir="${output.dir}/C2.Facilities.NH/lib"/>
+		<mkdir dir="${output.dir}/C2.Facilities.NH/lib/net40"/>
+		<copy file="${src.dir}/C2.Facilities.NH/C2.Facilities.NH.nuspec.template.xml"
+					tofile="${output.dir}/C2.Facilities.NH/C2.Facilities.NH.nuspec"/>
+		<copy file="${base.dir}/license.txt" todir="${output.dir}/C2.Facilities.NH"/>
+		<copy todir="${output.dir}/C2.Facilities.NH/lib/net40">
+			<fileset basedir="${src.dir}/C2.Facilities.NH.Tests/bin/${config}">
+				<include name="C2.Facilities.NH.dll"/>
+			</fileset>
+		</copy>
+	</target>
+
+	<target name="update.nuspec" depends="copy.files">
+		<xmlpoke file="${output.dir}/C2.Facilities.NH/C2.Facilities.NH.nuspec"
+						 xpath="//version"
+						 value="${numeric.product.version}"/>
+		<xmlpoke file="${output.dir}/C2.Facilities.NH/C2.Facilities.NH.nuspec"
+						 xpath="//copyright"
+						 value="Copyright (c) 2004-${build.year}"/>
+	</target>
+
+	<target name="nuget" depends="update.nuspec">
+		<exec program="nuget.exe" basedir="${nuget.dir}">
+			<arg value="pack"/>
+			<arg file="${output.dir}/C2.Facilities.NH/C2.Facilities.NH.nuspec"/>
+			<arg value="-BasePath"/>
+			<arg path="${output.dir}/C2.Facilities.NH"/>
+			<arg value="-OutputDirectory"/>
+			<arg path="${output.dir}"/>
+		</exec>
+		<zip zipfile="${output.dir}/C2.Facilities.NH.${numeric.product.version}.zip">
+			<fileset basedir="${output.dir}">
+				<include name="C2.Facilities.NH/**"/>
+			</fileset>
+		</zip>
+		<echo message="##teamcity[publishArtifacts '${output.dir}/C2.Facilities.NH.${numeric.product.version}.nupkg']"/>
+		<echo message="##teamcity[publishArtifacts '${output.dir}/C2.Facilities.NH.${numeric.product.version}.zip']"/>
 	</target>
 
 	<target name="build" depends="nuget"/>
