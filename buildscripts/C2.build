@@ -7,8 +7,7 @@
 	<!-- get the version number from the environment variable set by the TeamCity	build server -->
 	<property name="version" value="${environment::get-variable('BUILD_NUMBER')}" if="${environment::variable-exists('BUILD_NUMBER')}"/>
 	<property name="vcs.revision" value="${environment::get-variable('BUILD_VCS_NUMBER')}" if="${environment::variable-exists('BUILD_VCS_NUMBER')}"/>
-	<property name="vcs.revision" value="00000000" overwrite="false"/>
-	<property name="vcs.branch" value="${environment::get-variable('vcsroot.branch')}"  if="${environment::variable-exists('vcsroot.branch')}"/>
+	<property name="vcs.branch" value="${environment::get-variable('BUILD_VCS_BRANCH')}"  if="${environment::variable-exists('BUILD_VCS_BRANCH')}"/>
 
 	<!-- if not a formal build, then set to a default value -->
 	<property name="vcs.branch" value="unknown" overwrite="false"/>
@@ -20,7 +19,6 @@
 
 	<!-- This version is in all the places we need a numeric version number. We can't add the VCS revision as it is a string (GIT) -->
 	<property name="numeric.product.version" value="${version}.0"/>
-	<property name="full.product.version" value="${version}.${vcs.revision}"/>
 	
 	<!-- consider this a formal build if the environment variable is set -->
 	<property name="formal.build" value="${environment::variable-exists('BUILD_NUMBER')} "/>
@@ -70,6 +68,9 @@
 
 	<!-- source directory -->
 	<property name="src.dir" value="${base.dir}/src"/>
+	
+	<!-- build scripts directory -->
+	<property name="buildscripts.dir" value="${base.dir}/buildscripts"/>
 	
 	<!-- build directory, ie where the build products go. (This naming convention to be consistent with castle projects) -->
 	<property name="output.dir" value="${base.dir}/build"/>
@@ -194,15 +195,22 @@
 	</target>
 
 	<target name="version.file" depends="update.nuspec">
-		<echo file="${output.dir}/C2.Facilities.NH/version.txt">Version information:
-			Version:	${numeric.product.version}
-			Commit: ${vcs.revision}
-			Branch:	${vcs.branch}
-			Built:	${build.timestamp}
-		</echo>
+		<copy file="${buildscripts.dir}/version.template.xml" tofile="${output.dir}/C2.Facilities.NH/version.xml"/>
+		<xmlpoke file="${output.dir}/C2.Facilities.NH/version.xml"
+						 xpath="//version"
+						 value="${numeric.product.version}"/>
+		<xmlpoke file="${output.dir}/C2.Facilities.NH/version.xml"
+						 xpath="//commit"
+						 value="${vcs.revision}"/>
+		<xmlpoke file="${output.dir}/C2.Facilities.NH/version.xml"
+						 xpath="//branch"
+						 value="${vcs.branch}"/>
+		<xmlpoke file="${output.dir}/C2.Facilities.NH/version.xml"
+						 xpath="//timestamp"
+						 value="${build.timestamp}"/>
 	</target>
 
-	<target name="nuget" depends="update.nuspec">
+	<target name="nuget" depends="version.file">
 		<exec program="nuget.exe" basedir="${nuget.dir}">
 			<arg value="pack"/>
 			<arg file="${output.dir}/C2.Facilities.NH/C2.Facilities.NH.nuspec"/>
