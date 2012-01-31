@@ -84,7 +84,7 @@
     <Compile Include="SessionStoreTests.cs" />
     <Compile Include="SqliteTestDatabaseTests.cs" />
     <Compile Include="StatelessSessionDelegateTests.cs" />
-    <Compile Include="Support\TestNHibernateInstaller.cs" />
+    <Compile Include="Support\TestConfigurationBuilder.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\C2.Facilities.NH\C2.Facilities.NH.csproj">
