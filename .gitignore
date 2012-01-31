@@ -16,3 +16,4 @@ _ReSharper*
 *.dotCover
 *.TeamCity.user
 src/C2.Facilities.NHibernateIntegration*
+src/CommonAssemblyInfo.cs
