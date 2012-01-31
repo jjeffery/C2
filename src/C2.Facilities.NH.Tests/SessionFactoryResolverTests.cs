@@ -38,7 +38,7 @@ namespace Castle.Facilities.NH.Tests
 
 			// Register installer prior to registering 
 			container.Register(
-				Component.For<INHibernateInstaller>()
+				Component.For<IConfigurationBuilder>()
 					.ImplementedBy<DefaultInstaller>()
 				);
 
@@ -54,7 +54,7 @@ namespace Castle.Facilities.NH.Tests
 
 			// Register installer prior to registering 
 			container.Register(
-				Component.For<INHibernateInstaller>()
+				Component.For<IConfigurationBuilder>()
 					.ImplementedBy<DefaultInstaller>()
 				);
 
@@ -69,7 +69,7 @@ namespace Castle.Facilities.NH.Tests
 
 			// Register installer prior to registering 
 			container.Register(
-				Component.For<INHibernateInstaller>()
+				Component.For<IConfigurationBuilder>()
 					.ImplementedBy<InstallerWithDependency>()
 				);
 
@@ -89,7 +89,7 @@ namespace Castle.Facilities.NH.Tests
 			Assert.IsNull(sessionFactoryResolver.DefaultAlias);
 
 			container.Register(
-				Component.For<INHibernateInstaller>()
+				Component.For<IConfigurationBuilder>()
 					.ImplementedBy<NonDefaultInstaller>()
 				);
 
@@ -113,7 +113,7 @@ namespace Castle.Facilities.NH.Tests
 			var sessionFactoryResolver = new SessionFactoryResolver(container.Kernel);
 
 			container.Register(
-				Component.For<INHibernateInstaller>()
+				Component.For<IConfigurationBuilder>()
 					.ImplementedBy<NonDefaultInstaller>()
 				);
 
@@ -137,9 +137,9 @@ namespace Castle.Facilities.NH.Tests
 
 				// Register installer prior to registering 
 				container.Register(
-					Component.For<INHibernateInstaller>()
-						.ImplementedBy<TestNHibernateInstaller>(),
-					Component.For<INHibernateInstaller>()
+					Component.For<IConfigurationBuilder>()
+						.ImplementedBy<TestConfigurationBuilder>(),
+					Component.For<IConfigurationBuilder>()
 						.ImplementedBy<NonDefaultInstaller>()
 					);
 
@@ -160,7 +160,7 @@ namespace Castle.Facilities.NH.Tests
 
 			// Register installer prior to registering 
 			container.Register(
-				Component.For<INHibernateInstaller>()
+				Component.For<IConfigurationBuilder>()
 					.ImplementedBy<DefaultInstaller>()
 				);
 
@@ -168,14 +168,14 @@ namespace Castle.Facilities.NH.Tests
 			{
 				// Register installer prior to registering 
 				container.Register(
-					Component.For<INHibernateInstaller>()
+					Component.For<IConfigurationBuilder>()
 						.ImplementedBy<AnotherDefaultInstaller>()
 					);
 				Assert.Fail("Exception expected");
 			}
 			catch (NHibernateFacilityException ex)
 			{
-				Assert.IsTrue(ex.Message.StartsWith("Multiple INHibernateInstallers have IsDefault=true:"));
+				Assert.IsTrue(ex.Message.StartsWith("Multiple IConfigurationBuilders have IsDefault=true:"));
 			}
 		}
 
@@ -187,7 +187,7 @@ namespace Castle.Facilities.NH.Tests
 
 			// Register installer prior to registering 
 			container.Register(
-				Component.For<INHibernateInstaller>()
+				Component.For<IConfigurationBuilder>()
 					.ImplementedBy<NonDefaultInstaller>()
 				);
 
@@ -195,7 +195,7 @@ namespace Castle.Facilities.NH.Tests
 			{
 				// Register installer prior to registering 
 				container.Register(
-					Component.For<INHibernateInstaller>()
+					Component.For<IConfigurationBuilder>()
 						.ImplementedBy<NonDefaultInstaller>()
 						.Named("another-name-that-does-not-clash")
 					);
@@ -203,7 +203,7 @@ namespace Castle.Facilities.NH.Tests
 			}
 			catch (NHibernateFacilityException ex)
 			{
-				Assert.IsTrue(ex.Message.StartsWith("Multiple INHibernateInstallers have alias of non-default-installer:"));
+				Assert.IsTrue(ex.Message.StartsWith("Multiple IConfigurationBuilders have alias of non-default-installer:"));
 			}
 		}
 
@@ -221,14 +221,14 @@ namespace Castle.Facilities.NH.Tests
 		#region class DefaultInstaller
 
 		// ReSharper disable ClassNeverInstantiated.Local
-		private class DefaultInstaller : INHibernateInstaller
+		private class DefaultInstaller : IConfigurationBuilder
 		{
 			public bool IsDefault
 			{
 				get { return true; }
 			}
 
-			public string SessionFactoryKey
+			public string Alias
 			{
 				get { return "default-installer"; }
 			}
@@ -249,14 +249,14 @@ namespace Castle.Facilities.NH.Tests
 		#region class AnotherDefaultInstaller
 
 		// ReSharper disable ClassNeverInstantiated.Local
-		private class AnotherDefaultInstaller : INHibernateInstaller
+		private class AnotherDefaultInstaller : IConfigurationBuilder
 		{
 			public bool IsDefault
 			{
 				get { return true; }
 			}
 
-			public string SessionFactoryKey
+			public string Alias
 			{
 				get { return "another-default-installer"; }
 			}
@@ -277,14 +277,14 @@ namespace Castle.Facilities.NH.Tests
 		#region class NonDefaultInstaller
 
 		// ReSharper disable ClassNeverInstantiated.Local
-		private class NonDefaultInstaller : INHibernateInstaller
+		private class NonDefaultInstaller : IConfigurationBuilder
 		{
 			public bool IsDefault
 			{
 				get { return false; }
 			}
 
-			public string SessionFactoryKey
+			public string Alias
 			{
 				get { return "non-default-installer"; }
 			}
@@ -304,7 +304,7 @@ namespace Castle.Facilities.NH.Tests
 
 		#region class InstallerWithDependency
 
-		public class InstallerWithDependency : INHibernateInstaller
+		public class InstallerWithDependency : IConfigurationBuilder
 		{
 			// ReSharper disable UnusedParameter.Local
 			public InstallerWithDependency(DependencyClass dependencyClass)
@@ -318,7 +318,7 @@ namespace Castle.Facilities.NH.Tests
 				get { return false; }
 			}
 
-			public string SessionFactoryKey
+			public string Alias
 			{
 				get { return "installer-with-dependency"; }
 			}

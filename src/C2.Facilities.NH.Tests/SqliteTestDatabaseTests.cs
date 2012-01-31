@@ -38,12 +38,12 @@ namespace Castle.Facilities.NH.Tests
 		protected ISession Session { get; private set; }
 		protected ISessionFactory SessionFactory { get; private set; }
 		protected Configuration Configuration { get; private set; }
-		protected TestNHibernateInstaller NHibernateInstaller { get; private set; }
+		protected TestConfigurationBuilder NHibernateInstaller { get; private set; }
 
 		[SetUp]
 		public void SetUp()
 		{
-			NHibernateInstaller = new TestNHibernateInstaller();
+			NHibernateInstaller = new TestConfigurationBuilder();
 			Configuration = NHibernateInstaller.BuildConfiguration();
 			SessionFactory = Configuration.BuildSessionFactory();
 			NHibernateInstaller.Registered(SessionFactory, Configuration);

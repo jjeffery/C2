@@ -34,8 +34,8 @@ namespace Castle.Facilities.NH.Internal.Implementation
 
 		private readonly IKernel _kernel;
 		private readonly IList<IHandler> _waitList = new List<IHandler>();
-		private readonly Dictionary<string, InstallerData> _installerDataMap = new Dictionary<string, InstallerData>();
-		private InstallerData _defaultInstallerData;
+		private readonly Dictionary<string, DatabaseSettings> _databaseMap = new Dictionary<string, DatabaseSettings>();
+		private DatabaseSettings _defaultDatabaseSettings;
 
 		public SessionFactoryResolver(IKernel kernel)
 		{
@@ -50,9 +50,9 @@ namespace Castle.Facilities.NH.Internal.Implementation
 				Logger = NullLogger.Instance;
 			}
 
-			foreach (var installer in _kernel.ResolveAll<INHibernateInstaller>())
+			foreach (var builder in _kernel.ResolveAll<IConfigurationBuilder>())
 			{
-				AddInstaller(installer);
+				AddBuilder(builder);
 			}
 
 			_kernel.ComponentRegistered += KernelOnComponentRegistered;
@@ -60,27 +60,26 @@ namespace Castle.Facilities.NH.Internal.Implementation
 
 		private void KernelOnComponentRegistered(string key, IHandler handler)
 		{
-			if (typeof(INHibernateInstaller).IsAssignableFrom(handler.ComponentModel.Implementation))
+			if (typeof(IConfigurationBuilder).IsAssignableFrom(handler.ComponentModel.Implementation))
 			{
-				if (!TryAddInstaller(handler))
+				if (!TryAddBuilder(handler))
 				{
 					_waitList.Add(handler);
 				}
 			}
 
 			CheckWaitList();
-
 		}
 
-		private bool TryAddInstaller(IHandler handler)
+		private bool TryAddBuilder(IHandler handler)
 		{
-			var installer = (INHibernateInstaller)handler.TryResolve(CreationContext.CreateEmpty());
-			if (installer == null)
+			var builder = (IConfigurationBuilder)handler.TryResolve(CreationContext.CreateEmpty());
+			if (builder == null)
 			{
 				return false;
 			}
 
-			AddInstaller(installer);
+			AddBuilder(builder);
 			return true;
 		}
 
@@ -89,115 +88,97 @@ namespace Castle.Facilities.NH.Internal.Implementation
 			var handlers = _waitList.ToArray();
 			foreach (var handler in handlers)
 			{
-				if (TryAddInstaller(handler))
+				if (TryAddBuilder(handler))
 				{
 					_waitList.Remove(handler);
 				}
 			}
 		}
 
-		private void AddInstaller(INHibernateInstaller installer)
+		private void AddBuilder(IConfigurationBuilder builder)
 		{
-			Verify.ArgumentNotNull(installer, "installer");
+			Verify.ArgumentNotNull(builder, "builder");
 
-			if (_installerDataMap.ContainsKey(installer.SessionFactoryKey))
+			if (_databaseMap.ContainsKey(builder.Alias))
 			{
-				var msg = string.Format("Multiple INHibernateInstallers have alias of {0}: {1}, {2}",
-				                        installer.SessionFactoryKey, installer.GetType(),
-				                        _installerDataMap[installer.SessionFactoryKey].Installer.GetType());
+				var msg = string.Format("Multiple IConfigurationBuilders have alias of {0}: {1}, {2}",
+				                        builder.Alias, builder.GetType(),
+				                        _databaseMap[builder.Alias].Builder.GetType());
 				throw new NHibernateFacilityException(msg);
 			}
 
-			var installerData = new InstallerData(installer);
+			var databaseSettings = new DatabaseSettings(builder, _kernel);
 
-			_installerDataMap.Add(installer.SessionFactoryKey, installerData);
+			_databaseMap.Add(builder.Alias, databaseSettings);
 
-			if (installer.IsDefault)
+			if (builder.IsDefault)
 			{
-				if (_defaultInstallerData != null)
+				if (_defaultDatabaseSettings != null)
 				{
-					var msg = string.Format("Multiple INHibernateInstallers have IsDefault=true: {0}, {1}",
-					                        installer.GetType(), _defaultInstallerData.Installer.GetType());
+					var msg = string.Format("Multiple IConfigurationBuilders have IsDefault=true: {0}, {1}",
+					                        builder.GetType(), _defaultDatabaseSettings.Builder.GetType());
 					throw new NHibernateFacilityException(msg);
 				}
-				_defaultInstallerData = installerData;
+				_defaultDatabaseSettings = databaseSettings;
 			}
 		}
 
 		public bool IsAliasDefined(string alias)
 		{
-			return _installerDataMap.ContainsKey(alias);
+			return _databaseMap.ContainsKey(alias);
 		}
 
 		public string DefaultAlias
 		{
 			get
 			{
-				if (_defaultInstallerData == null)
+				if (_defaultDatabaseSettings == null)
 				{
 					return null;
 				}
-				return _defaultInstallerData.Installer.SessionFactoryKey;
+				return _defaultDatabaseSettings.Builder.Alias;
 			}
 		}
 
 		public ISessionFactory GetSessionFactory(string alias)
 		{
-			InstallerData installerData;
+			DatabaseSettings databaseSettings;
 
 			if (string.IsNullOrWhiteSpace(alias))
 			{
-				installerData = _defaultInstallerData;
-				if (installerData == null)
+				databaseSettings = _defaultDatabaseSettings;
+				if (databaseSettings == null)
 				{
 					throw new NHibernateFacilityException("No default session factory defined");
 				}
 			}
 			else
 			{
-				if (!_installerDataMap.TryGetValue(alias, out installerData))
+				if (!_databaseMap.TryGetValue(alias, out databaseSettings))
 				{
 					throw new NHibernateFacilityException("Unknown session factory alias: " + alias);
 				}
 			}
 
-			return installerData.SessionFactory;
+			return databaseSettings.SessionFactory;
 		}
 
-		#region class InstallerData
+		#region class DatabaseSettings
 
-		private class InstallerData
+		private class DatabaseSettings
 		{
-			public InstallerData(INHibernateInstaller installer)
+			public DatabaseSettings(IConfigurationBuilder builder, IKernel kernel)
 			{
-				Installer = installer;
+				Builder = builder;
+				_kernel = kernel;
 			}
 
 			private readonly object _lockObject = new object();
 			private volatile ISessionFactory _sessionFactory;
-			private volatile Configuration _configuration;
+			private readonly IKernel _kernel;
 
-			public INHibernateInstaller Installer { get; private set; }
-			public Configuration Configuration
-			{
-				get
-				{
-					if (_configuration != null)
-					{
-						return _configuration;
-					}
+			public IConfigurationBuilder Builder { get; private set; }
 
-					lock (_lockObject)
-					{
-						if (_configuration == null)
-						{
-							_configuration = Installer.BuildConfiguration();
-						}
-					}
-
-					return _configuration;
-				}
-			}
 			public ISessionFactory SessionFactory
 			{
 				get
@@ -211,15 +192,27 @@ namespace Castle.Facilities.NH.Internal.Implementation
 					{
 						if (_sessionFactory == null)
 						{
-							var cfg = Configuration;
+							var cfg = GetConfiguration();
 							var sessionFactory = cfg.BuildSessionFactory();
-							Installer.Registered(sessionFactory, cfg);
+							Builder.Registered(sessionFactory, cfg);
 							_sessionFactory = sessionFactory;
 						}
 					}
 
 					return _sessionFactory;
 				}
+			}
+
+			private Configuration GetConfiguration()
+			{
+				var configuration = Builder.BuildConfiguration();
+				foreach (var contributor in _kernel.ResolveAll<IConfigurationContributor>())
+				{
+					contributor.Contribute(Builder.Alias, Builder.IsDefault, configuration);
+					_kernel.ReleaseComponent(contributor);
+				}
+
+				return configuration;
 			}
 		}
 

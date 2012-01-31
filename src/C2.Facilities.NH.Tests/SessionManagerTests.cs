@@ -40,8 +40,8 @@ namespace Castle.Facilities.NH.Tests
 			_container = new WindsorContainer();
 			_container.AddFacility<NHibernateFacility>();
 			_container.Register(
-				Component.For<INHibernateInstaller>()
-					.ImplementedBy<TestNHibernateInstaller>());
+				Component.For<IConfigurationBuilder>()
+					.ImplementedBy<TestConfigurationBuilder>());
 
 			_sessionManager = _container.Resolve<ISessionManager>();
 		}

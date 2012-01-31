@@ -28,11 +28,9 @@ using NHibernate.Type;
 namespace Castle.Facilities.NH.Internal.Implementation
 {
 	/// <summary>
-	/// Proxies an ISession so the user cannot close a session which
-	/// is controlled by a transaction, or, when this is not the case, 
-	/// make sure to remove the session from the storage.
-	/// <seealso cref="ISessionStore{TSession}"/>
-	/// <seealso cref="ISessionManager"/>
+	/// Proxies an ISession so that the session will not be closed
+	/// or disposed if the session was created by a scope higher
+	/// up on the calling stack.
 	/// </summary>
 	[Serializable]
 	public class SessionDelegate : MarshalByRefObject, ISession
@@ -49,8 +47,12 @@ namespace Castle.Facilities.NH.Internal.Implementation
 		/// <summary>
 		/// Initializes a new instance of the <see cref="SessionDelegate"/> class.
 		/// </summary>
-		/// <param name="canClose">if set to <c>true</c> [can close].</param>
-		/// <param name="inner">The inner.</param>
+		/// <param name="canClose">
+		///		Specifies whether the <see cref="Close"/> and <see cref="Dispose"/>
+		///		methods have effect for this instance. If <c>null</c>, then
+		///		both of these methods have no effect on the inner session.
+		/// </param>
+		/// <param name="inner">The inner session.</param>
 		public SessionDelegate(bool canClose, ISession inner)
 		{
 			while (inner is SessionDelegate)

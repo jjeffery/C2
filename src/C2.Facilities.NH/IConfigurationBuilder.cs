@@ -27,7 +27,7 @@ namespace Castle.Facilities.NH
 	/// <remarks>
 	/// Register one of these for each database used by the application.
 	/// </remarks>
-	public interface INHibernateInstaller
+	public interface IConfigurationBuilder
 	{
 		/// <summary>
 		/// 	Is this the default session factory
@@ -35,10 +35,10 @@ namespace Castle.Facilities.NH
 		bool IsDefault { get; }
 
 		/// <summary>
-		/// 	Gets a session factory key. This key must be unique for the registered
+		/// 	A short alias string for the database. This value must be unique for the registered
 		/// 	NHibernate installers.
 		/// </summary>
-		string SessionFactoryKey { get; }
+		string Alias { get; }
 
 		/// <summary>
 		/// 	Build an NHibernate <see cref="Configuration"/> for this database.

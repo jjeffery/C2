@@ -13,3 +13,6 @@ _ReSharper*
 *.suo
 *.cache
 * Thumbs.db
+*.dotCover
+*.TeamCity.user
+src/C2.Facilities.NHibernateIntegration*

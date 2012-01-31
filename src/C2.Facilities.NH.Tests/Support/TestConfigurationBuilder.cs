@@ -29,18 +29,18 @@ using Environment = NHibernate.Cfg.Environment;
 
 namespace Castle.Facilities.NH.Tests.Support
 {
-	public class TestNHibernateInstaller : INHibernateInstaller, IDisposable
+	public class TestConfigurationBuilder : IConfigurationBuilder, IDisposable
 	{
-		public TestNHibernateInstaller()
+		public TestConfigurationBuilder()
 		{
-			SessionFactoryKey = "testdb";
+			Alias = "testdb";
 			IsDefault = true;
 			ConnectionString = "Data Source=:memory:;Version=3;New=True;Pooling=True;Max Pool Size=1;";
 			CreateDatabaseSchema = true;
 		}
 
 		public bool IsDefault { get; set; }
-		public string SessionFactoryKey { get; set; }
+		public string Alias { get; set; }
 		public string ConnectionString { get; set; }
 		public bool CreateDatabaseSchema { get; set; }
 		public bool DatabaseSchemaCreated { get; private set; }

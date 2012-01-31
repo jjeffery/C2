@@ -35,8 +35,8 @@ namespace Castle.Facilities.NH.Tests
 			{
 				container.AddFacility<NHibernateFacility>();
 				container.Register(
-					Component.For<INHibernateInstaller>()
-						.ImplementedBy<TestNHibernateInstaller>(),
+					Component.For<IConfigurationBuilder>()
+						.ImplementedBy<TestConfigurationBuilder>(),
 
 					Component.For<ITestComponent>()
 						.ImplementedBy<TestComponent>()
@@ -55,8 +55,8 @@ namespace Castle.Facilities.NH.Tests
 			{
 				container.AddFacility<NHibernateFacility>();
 				container.Register(
-					Component.For<INHibernateInstaller>()
-						.ImplementedBy<TestNHibernateInstaller>(),
+					Component.For<IConfigurationBuilder>()
+						.ImplementedBy<TestConfigurationBuilder>(),
 
 					Component.For(typeof(IGeneric<>))
 						.ImplementedBy(typeof(GenericClass<>))

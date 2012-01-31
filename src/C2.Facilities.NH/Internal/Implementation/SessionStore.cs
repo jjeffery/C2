@@ -22,6 +22,15 @@ using Castle.Facilities.NH.Internal.Interfaces;
 
 namespace Castle.Facilities.NH.Internal.Implementation
 {
+	/// <summary>
+	/// Used for storing the current session for each session factory in the current context.
+	/// </summary>
+	/// <remarks>
+	/// NHibernate already has a mechanism for storing the current session context, but this
+	/// only applies to ISession objects, not IStatelessSession objects. This mechanism can
+	/// be used for both.
+	/// </remarks>
+	/// <typeparam name="TSession"></typeparam>
 	public class SessionStore<TSession> : ISessionStore<TSession> where TSession : class
 	{
 		private readonly ISessionStoreContext _sessionStoreContext;
