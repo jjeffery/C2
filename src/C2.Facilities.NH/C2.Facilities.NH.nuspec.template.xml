@@ -14,5 +14,11 @@
       <dependency id="Castle.Windsor" version="3.0.0" />
       <dependency id="NHibernate" version="3.2.0" />
     </dependencies>
+		<frameworkAssemblies>
+			<frameworkAssembly assemblyName="System."/>
+			<frameworkAssembly assemblyName="System.Data"/>
+			<frameworkAssembly assemblyName="System.Core"/>
+			<frameworkAssembly assemblyName="System.qTransactions"/>
+		</frameworkAssemblies>
   </metadata>
 </package>
