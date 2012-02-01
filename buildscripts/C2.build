@@ -27,6 +27,13 @@
 	<echo message="Build: ${vcs.revision}"/>
 	<echo message="Branch: ${vcs.branch}"/>
 	<echo message="Formal Build: ${formal.build}"/>
+	
+	<!-- nuget repository details
+	     ======================== -->
+
+	<property name="nuget.server.url" value="${environment::get-variable('SP_NUGET_URL')}" if="${environment::variable-exists('SP_NUGET_URL')}"/>
+	<property name="nuget.apikey" value="${environment::get-variable('SP_NUGET_APIKEY')}" if="${environment::variable-exists('SP_NUGET_APIKEY')}"/>
+	<property name="nuget.push" value="${environment::variable-exists('SP_NUGET_APIKEY')}"/>
 
 	<!-- build properties
 	     ================ -->
@@ -228,5 +235,15 @@
 		<echo message="##teamcity[publishArtifacts '${output.dir}/C2.Facilities.NH.${numeric.product.version}.zip']"/>
 	</target>
 
-	<target name="build" depends="nuget"/>
+	<target name="publish.nuget" depends="nuget" if="${formal.build}">
+		<exec program="nuget.exe" basedir="${nuget.dir}" if="${nuget.push}">
+			<arg value="push"/>
+			<arg file="${output.dir}/C2.Facilities.NH.${numeric.product.version}.nupkg"/>
+			<arg value="-s"/>
+			<arg value="${nuget.server.url}"/>
+			<arg value="${nuget.apikey}"/>
+		</exec>
+	</target>
+
+	<target name="build" depends="publish.nuget"/>
 </project>
