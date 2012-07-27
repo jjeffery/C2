@@ -73,6 +73,14 @@ namespace Castle.Facilities.NH.Internal.Implementation
 			get { return _inner; }
 		}
 
+		/// <summary>
+		/// Will this delegate close its internal <see cref="ISession"/>, or leave it alone.
+		/// </summary>
+		public bool CanClose
+		{
+			get { return _canClose; }
+		}
+
 		#region ISession delegation
 
 		/// <summary>
@@ -1174,12 +1182,13 @@ namespace Castle.Facilities.NH.Internal.Implementation
 		/// </remarks>
 		public IDbConnection Close()
 		{
-			if (!_canClose)
-			{
-				return null;
-			}
+			IDbConnection result = null;
 
-			var result = InnerSession.Close();
+			if (_canClose)
+			{
+				result = InnerSession.Close();
+			}
+			
 			RaiseClosed();
 			return result;
 		}
@@ -1259,8 +1268,8 @@ namespace Castle.Facilities.NH.Internal.Implementation
 			if (_canClose)
 			{
 				InnerSession.Dispose();
-				RaiseClosed();
 			}
+			RaiseClosed();
 		}
 
 		#endregion
