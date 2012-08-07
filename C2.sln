@@ -7,6 +7,7 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "buildscripts", "buildscripts", "{DA8DEDBB-CA35-447A-A1E2-98BC1C848A0F}"
 	ProjectSection(SolutionItems) = preProject
 		buildscripts\C2.build = buildscripts\C2.build
+		buildscripts\C2Target.xml = buildscripts\C2Target.xml
 	EndProjectSection
 EndProject
 Global
