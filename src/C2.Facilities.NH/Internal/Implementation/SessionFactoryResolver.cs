@@ -144,7 +144,7 @@ namespace Castle.Facilities.NH.Internal.Implementation
 		{
 			DatabaseSettings databaseSettings;
 
-			if (string.IsNullOrWhiteSpace(alias))
+			if (string.IsNullOrEmpty(alias))
 			{
 				databaseSettings = _defaultDatabaseSettings;
 				if (databaseSettings == null)

@@ -35,7 +35,7 @@ namespace Castle.Facilities.NH.Tests.Support
 		{
 			Alias = "testdb";
 			IsDefault = true;
-			ConnectionString = "Data Source=:memory:;Version=3;New=True;Pooling=True;Max Pool Size=1;";
+			ConnectionString = "Data Source=.;Initial Catalog=test;Integrated Security=SSPI";
 			CreateDatabaseSchema = true;
 		}
 
@@ -51,8 +51,8 @@ namespace Castle.Facilities.NH.Tests.Support
 		{
 			var cfg = new Configuration();
 			cfg.SetProperty(Environment.ConnectionProvider, typeof (DriverConnectionProvider).AssemblyQualifiedName);
-			cfg.SetProperty(Environment.Dialect, typeof (SQLiteDialect).AssemblyQualifiedName);
-			cfg.SetProperty(Environment.ConnectionDriver, typeof(SQLite20Driver).AssemblyQualifiedName);
+			cfg.SetProperty(Environment.Dialect, typeof (MsSql2005Dialect).AssemblyQualifiedName);
+			cfg.SetProperty(Environment.ConnectionDriver, typeof(SqlClientDriver).AssemblyQualifiedName);
 			cfg.SetProperty(Environment.ConnectionString, ConnectionString);
 
 			var modelMapper = new ModelMapper();

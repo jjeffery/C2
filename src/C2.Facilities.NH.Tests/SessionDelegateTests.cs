@@ -18,7 +18,7 @@
 
 using System;
 using System.Data;
-using System.Data.SQLite;
+using System.Data.SqlClient;
 using System.Linq.Expressions;
 using Castle.Facilities.NH.Internal.Implementation;
 using Castle.Facilities.NH.Tests.Model;
@@ -142,7 +142,7 @@ namespace Castle.Facilities.NH.Tests
 		[Test]
 		public void Disconnect()
 		{
-			var connection = new SQLiteConnection();
+			var connection = new SqlConnection();
 
 			_mock.Setup(s => s.Disconnect()).Returns(connection);
 			var c = _delegate.Disconnect();
@@ -160,7 +160,7 @@ namespace Castle.Facilities.NH.Tests
 		[Test]
 		public void ReconnectWithDbConnection()
 		{
-			var connection = new SQLiteConnection();
+			var connection = new SqlConnection();
 			_delegate.Reconnect(connection);
 			_mock.Verify(s => s.Reconnect(connection), Times.Exactly(1));
 		}
@@ -168,7 +168,7 @@ namespace Castle.Facilities.NH.Tests
 		[Test]
 		public void Close_with_CanClose_true()
 		{
-			var connection = new SQLiteConnection();
+			var connection = new SqlConnection();
 			_mock.Setup(s => s.Close()).Returns(connection);
 			var c = _delegate.Close();
 			Assert.AreSame(connection, c);
@@ -181,7 +181,7 @@ namespace Castle.Facilities.NH.Tests
 			// override the setup method
 			_delegate = new SessionDelegate(false, _mock.Object);
 
-			var connection = new SQLiteConnection();
+			var connection = new SqlConnection();
 			_mock.Setup(s => s.Close()).Returns(connection);
 			var c = _delegate.Close();
 			Assert.IsNull(c);

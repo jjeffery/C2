@@ -38,8 +38,19 @@
 	<!-- build properties
 	     ================ -->
 	
-	<!-- configuration Release|Debug -->
-	<property name="config" value="Release" overwrite="false"/>
+	
+	<property name="BuildFramework" value="NET40" overwrite="false"/>
+	<property name="Configuration" value="Release" overwrite="false"/>
+
+	<if test="${BuildFramework=='NET40'}">
+		<property name="BuildConstants" value="NET40"/>
+		<property name="TargetFrameworkVersion" value="v4.0"/>
+	</if>
+	
+	<if test="${BuildFramework=='NET35'}">
+		<property name="BuildConstants" value="NET35"/>
+		<property name="TargetFrameworkVersion" value="v3.5"/>
+	</if>
 
 	<!-- code signing certificate subject name -->
 	<property name="cert.subject.name" value="Software Projects Pty Ltd" overwrite="false"/>
@@ -85,12 +96,16 @@
 	<!-- location of the common assembly information file -->
 	<property name="common.asminfo.path" value="${src.dir}/CommonAssemblyInfo.cs"/>
 	
+	
+	
 	<!-- build targets
 	     ============= -->
 
 	<target name="clean">
 		<exec program="msbuild.exe" basedir="${msbuild.dir}" workingdir="${base.dir}">
-			<arg value="/property:Configuration=${config}"/>
+			<arg value="/property:Configuration=${Configuration}"/>
+			<arg value="/property:BuildConstants=${BuildConstants}"/>
+			<arg value="/property:TargetFrameworkVersion=${TargetFrameworkVersion}"/>
 			<arg value="/property:FormalBuild=true"/>
 			<arg value="/target:Clean"/>
 			<arg value="/verbosity:Minimal"/>
@@ -103,10 +118,22 @@
 		</delete>
 		<delete failonerror="false">
 			<fileset>
-				<include name="${src.dir}/*/bin/${config}/*"/>
+				<include name="${src.dir}/*/bin/${Configuration}/*"/>
 			</fileset>
 		</delete>
 	</target>
+
+	<target name="msbuild" depends="common.asminfo" workingdir="${base.dir}">
+		<exec program="msbuild.exe" basedir="${msbuild.dir}">
+			<arg value="/property:Configuration=${Configuration}"/>
+			<arg value="/property:BuildConstants=${BuildConstants}"/>
+			<arg value="/property:TargetFrameworkVersion=${TargetFrameworkVersion}"/>
+			<arg value="/property:FormalBuild=true"/>
+			<arg value="/verbosity:Minimal"/>
+			<arg file="${base.dir}/C2.sln"/>
+		</exec>
+	</target>
+
 
 	<target name="timestamps">
 		<tstamp unless="${property::exists('build.timestamp')}">
@@ -127,21 +154,12 @@
 			</imports>
 			<attributes>
 				<attribute type="AssemblyVersionAttribute" value="${numeric.product.version}"/>
-				<attribute type="AssemblyConfigurationAttribute" value="${config}"/>
+				<attribute type="AssemblyConfigurationAttribute" value="${Configuration}"/>
 				<attribute type="AssemblyCompanyAttribute" value="Software Projects Pty Ltd"/>
 				<attribute type="AssemblyProductAttribute" value="C2: Castle Project Contributions"/>
 				<attribute type="AssemblyCopyrightAttribute" value="Copyright 2004-${build.year}. All Rights Reserved."/>
 			</attributes>
 		</asminfo>
-	</target>
-
-	<target name="msbuild" depends="common.asminfo" workingdir="${base.dir}">
-		<exec program="msbuild.exe" basedir="${msbuild.dir}">
-			<arg value="/property:Configuration=${config}"/>
-			<arg value="/property:FormalBuild=true"/>
-			<arg value="/verbosity:Minimal"/>
-			<arg file="${base.dir}/C2.sln"/>
-		</exec>
 	</target>
 
 	<target name="codesign.assemblies" depends="msbuild" if="${formal.build}">
@@ -153,7 +171,7 @@
 			<arg value="${timestamp.service.url}"/>
 			
 			<!-- code-sign the assembly that is going to be tested -->
-			<arg file="${src.dir}/C2.Facilities.NH.Tests/bin/${config}/C2.Facilities.NH.dll"/>
+			<arg file="${src.dir}/C2.Facilities.NH.Tests/bin/${Configuration}/C2.Facilities.NH.dll"/>
 		</exec>
 	</target>
 
@@ -163,7 +181,7 @@
 			<formatter type="Plain" usefile="false" extension=".txt"/>
 			<test>
 				<assemblies>
-					<include name="${src.dir}/C2.Facilities.NH.Tests/bin/${config}/C2.Facilities.NH.Tests.dll"/>
+					<include name="${src.dir}/C2.Facilities.NH.Tests/bin/${Configuration}/C2.Facilities.NH.Tests.dll"/>
 				</assemblies>
 				<categories>
 					<exclude name="ExcludeFromFormalBuild"/>
@@ -186,7 +204,7 @@
 					tofile="${output.dir}/C2.Facilities.NH/C2.Facilities.NH.nuspec"/>
 		<copy file="${base.dir}/license.txt" todir="${output.dir}/C2.Facilities.NH"/>
 		<copy todir="${output.dir}/C2.Facilities.NH/lib/net40">
-			<fileset basedir="${src.dir}/C2.Facilities.NH.Tests/bin/${config}">
+			<fileset basedir="${src.dir}/C2.Facilities.NH.Tests/bin/${Configuration}">
 				<include name="C2.Facilities.NH.dll"/>
 			</fileset>
 		</copy>
