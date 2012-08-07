@@ -1,0 +1,192 @@
+<?xml version="1.0" ?>
+<project name="C2Target" default="build" xmlns="http://nant.sf.net/release/0.91/nant.xsd">
+	
+	<!-- version properties
+	     ================== -->
+
+	<!-- get the version number from the environment variable set by the TeamCity	build server -->
+	<property name="version" value="${environment::get-variable('BUILD_NUMBER')}" if="${environment::variable-exists('BUILD_NUMBER')}"/>
+	<property name="vcs.revision" value="${environment::get-variable('BUILD_VCS_NUMBER')}" if="${environment::variable-exists('BUILD_VCS_NUMBER')}"/>
+	<property name="vcs.branch" value="${environment::get-variable('BUILD_VCS_BRANCH')}"  if="${environment::variable-exists('BUILD_VCS_BRANCH')}"/>
+
+	<!-- if not a formal build, then set to a default value -->
+	<property name="vcs.branch" value="unknown" overwrite="false"/>
+	<property name="version" value="0.0.1" overwrite="false"/>
+	<property name="vcs.revision" value="00000000" overwrite="false"/>
+
+	<!-- git has a very long revision string, can truncate to 8 chars -->
+	<property name="vcs.revision" value="${string::substring(vcs.revision, 0, 8)}" if="${string::get-length(vcs.revision) &gt; 8}"/>
+
+	<!-- This version is in all the places we need a numeric version number. We can't add the VCS revision as it is a string (GIT) -->
+	<property name="numeric.product.version" value="${version}.0"/>
+	
+	<!-- consider this a formal build if the environment variable is set -->
+	<property name="formal.build" value="${environment::variable-exists('BUILD_NUMBER')} "/>
+
+	<echo message="Version: ${version}"/>
+	<echo message="Build: ${vcs.revision}"/>
+	<echo message="Branch: ${vcs.branch}"/>
+	<echo message="Formal Build: ${formal.build}"/>
+
+	<!-- build properties
+	     ================ -->
+
+	<!-- this is usually overridden by the caller -->
+	<property name="BuildFramework" value="NET40" overwrite="false"/>
+	<property name="Configuration" value="Release" overwrite="false"/>
+
+	<if test="${BuildFramework=='NET40'}">
+		<property name="BuildConstants" value="NET40"/>
+		<property name="TargetFrameworkVersion" value="v4.0"/>
+	</if>
+	
+	<if test="${BuildFramework=='NET35'}">
+		<property name="BuildConstants" value="NET35"/>
+		<property name="TargetFrameworkVersion" value="v3.5"/>
+	</if>
+
+	<!-- overrides where the msbuild task will create the executable files -->
+	<property name="OutputPath" value="bin\${Configuration}${BuildFramework}"/>
+
+
+	<!-- code signing certificate subject name -->
+	<property name="cert.subject.name" value="Software Projects Pty Ltd" overwrite="false"/>
+	
+	<!-- timestamp service url (for code signing) -->
+	<property name="timestamp.service.url" value="http://timestamp.verisign.com/scripts/timstamp.dll"/>
+	
+	<!--  directories external to the source repository 
+	      =============================================	-->
+	
+	<!-- .NET framework directory -->
+	<property name="framework.dir" value="${framework::get-framework-directory(nant.settings.currentframework)}"/>
+	
+	<!-- base directory for external build tools -->
+	<property name="tools.dir" value="/build/programs" overwrite="false"/>
+	
+	<!-- directory for MSBUILD -->
+	<property name="msbuild.dir" value="${framework.dir}"/>
+	
+	<!-- directory for code signing tool -->
+	<property name="signtool.bin.dir" value="${tools.dir}/signtool" overwrite="false"/>
+	
+	<!-- directories and files in this source repository 
+	     ===================================== -->
+
+	<!-- the base directory for the repository -->
+	<property name="base.dir" value="${path::get-full-path('..')}"/>
+	<echo message="base.dir = ${base.dir}"/>
+
+	<!-- source directory -->
+	<property name="src.dir" value="${base.dir}/src"/>
+	
+	<!-- build scripts directory -->
+	<property name="buildscripts.dir" value="${base.dir}/buildscripts"/>
+	
+	<!-- build directory, ie where the build products go. (This naming convention to be consistent with castle projects) -->
+	<property name="output.dir" value="${base.dir}/build"/>
+	
+	<!-- location of the common assembly information file -->
+	<property name="common.asminfo.path" value="${src.dir}/CommonAssemblyInfo.cs"/>
+	
+	
+	
+	<!-- build targets
+	     ============= -->
+
+	<target name="clean">
+		<exec program="msbuild.exe" basedir="${msbuild.dir}" workingdir="${base.dir}">
+			<arg value="/property:Configuration=${Configuration}"/>
+			<arg value="/property:BuildConstants=${BuildConstants}"/>
+			<arg value="/property:TargetFrameworkVersion=${TargetFrameworkVersion}"/>
+			<arg value="/property:OutputPath=${OutputPath}"/>
+			<arg value="/property:FormalBuild=true"/>
+			<arg value="/target:Clean"/>
+			<arg value="/verbosity:Minimal"/>
+			<arg value="C2.sln"/>
+		</exec>
+		<delete failonerror="false">
+			<fileset>
+				<include name="${src.dir}/*/bin/${Configuration}${BuildFramework}/*"/>
+			</fileset>
+		</delete>
+	</target>
+
+	<target name="msbuild" depends="common.asminfo" workingdir="${base.dir}">
+		<exec program="msbuild.exe" basedir="${msbuild.dir}">
+			<arg value="/property:Configuration=${Configuration}"/>
+			<arg value="/property:BuildConstants=${BuildConstants}"/>
+			<arg value="/property:TargetFrameworkVersion=${TargetFrameworkVersion}"/>
+			<arg value="/property:OutputPath=${OutputPath}"/>
+			<arg value="/property:FormalBuild=true"/>
+			<arg value="/verbosity:Minimal"/>
+			<arg file="${base.dir}/C2.sln"/>
+		</exec>
+	</target>
+
+	<target name="timestamps">
+		<tstamp unless="${property::exists('build.timestamp')}">
+			<formatter property="build.year" pattern="yyyy"/>
+			<formatter property="build.timestamp" pattern="yyyy-MM-ddTHH:mm:ss"/>
+			<formatter property="build.date" pattern="yyyy-MM-dd"/>
+			<formatter property="build.year.month" pattern="yyMM"/>
+			<formatter property="build.day.hour" pattern="ddHH"/>
+			<formatter property="build.minute.second" pattern="mmss"/>
+		</tstamp>
+	</target>
+
+	<target name="common.asminfo" depends="timestamps">
+		<asminfo language="CSharp" output="${common.asminfo.path}">
+			<imports>
+				<import namespace="System"/>
+				<import namespace="System.Reflection"/>
+			</imports>
+			<attributes>
+				<attribute type="AssemblyVersionAttribute" value="${numeric.product.version}"/>
+				<attribute type="AssemblyConfigurationAttribute" value="${Configuration}-${BuildFramework}"/>
+				<attribute type="AssemblyCompanyAttribute" value="Software Projects Pty Ltd"/>
+				<attribute type="AssemblyProductAttribute" value="C2: Castle Project Contributions"/>
+				<attribute type="AssemblyCopyrightAttribute" value="Copyright 2004-${build.year}. All Rights Reserved."/>
+			</attributes>
+		</asminfo>
+	</target>
+
+	<target name="codesign.assemblies" depends="msbuild" if="${formal.build}">
+		<exec program="signtool.exe" basedir="${signtool.bin.dir}">
+			<arg value="sign"/>
+			<arg value="/n"/>
+			<arg value="${cert.subject.name}"/>
+			<arg value="/t"/>
+			<arg value="${timestamp.service.url}"/>
+			
+			<!-- code-sign the assembly that is going to be tested -->
+			<arg file="${src.dir}/C2.Facilities.NH.Tests/bin/${Configuration}${BuildFramework}/C2.Facilities.NH.dll"/>
+		</exec>
+	</target>
+
+	<target name="unittest" depends="codesign.assemblies" unless="${property::exists('notest')}">
+    <nunit2>
+			<formatter type="Xml" usefile="true" extension=".xml"/>
+			<formatter type="Plain" usefile="false" extension=".txt"/>
+			<test>
+				<assemblies>
+					<include name="${src.dir}/C2.Facilities.NH.Tests/bin/${Configuration}${BuildFramework}/C2.Facilities.NH.Tests.dll"/>
+				</assemblies>
+				<categories>
+					<exclude name="ExcludeFromFormalBuild"/>
+				</categories>
+			</test>
+		</nunit2>
+	</target>
+
+	<target name="copy.files" depends="unittest">
+		<mkdir dir="${output.dir}/C2.Facilities.NH/lib/${BuildFramework}"/>
+		<copy todir="${output.dir}/C2.Facilities.NH/lib/${BuildFramework}">
+			<fileset basedir="${src.dir}/C2.Facilities.NH.Tests/bin/${Configuration}${BuildFramework}">
+				<include name="C2.Facilities.NH.dll"/>
+			</fileset>
+		</copy>
+	</target>
+
+	<target name="build" depends="copy.files"/>
+</project>
